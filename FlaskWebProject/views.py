@@ -6,7 +6,7 @@ from datetime import datetime
 from flask import render_template, flash, redirect, request, session, url_for
 from werkzeug.urls import url_parse
 from config import Config
-from FlaskWebProject import app, db
+from FlaskWebProject import app, db, logger
 from FlaskWebProject.forms import LoginForm, PostForm
 from flask_login import current_user, login_user, logout_user, login_required
 from FlaskWebProject.models import User, Post
@@ -66,9 +66,11 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
+            logger.warning('Invalid login attempt')
             flash('Invalid username or password')
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
+        logger.info('%s logged in successfully', user.username)
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('home')
@@ -96,7 +98,14 @@ def authorized():
         # Note: In a real app, we'd use the 'name' property from session["user"] below
         # Here, we'll use the admin username for anyone who is authenticated by MS
         user = User.query.filter_by(username="admin").first()
+        if user is None:
+            logger.error('Microsoft login succeeded, but the admin user does not exist')
+            return render_template(
+                "auth_error.html",
+                result={"error": "admin user is not initialized"},
+            )
         login_user(user)
+        logger.info('admin logged in successfully')
         _save_cache(cache)
     return redirect(url_for('home'))
 

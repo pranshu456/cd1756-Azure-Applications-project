@@ -58,3 +58,31 @@ This folder contains sample screenshots that students are required to submit in 
 All Python dependencies are stored in the requirements.txt file. To install them, using Visual Studio 2019 Community Edition:
 1. In the Solution Explorer, expand "Python Environments"
 2. Right-click on "Python 3.10 (64-bit) (global default)" and select "Install from requirements.txt"
+
+## Azure App Service Configuration
+
+The GitHub Actions workflow deploys the app with Gunicorn using:
+
+```text
+gunicorn --bind=0.0.0.0:8000 application:app
+```
+
+Configure these App Service application settings:
+
+```text
+SECRET_KEY
+SQL_SERVER
+SQL_DATABASE
+SQL_USER_NAME
+SQL_PASSWORD
+BLOB_ACCOUNT
+BLOB_STORAGE_KEY
+BLOB_CONTAINER
+CLIENT_ID
+CLIENT_SECRET
+TENANT_ID
+```
+
+Register the deployed HTTPS URL with `/getAToken` as a Web redirect URI in the Microsoft Entra app registration. The database must contain the `admin` user before Microsoft sign-in is used.
+
+The application logs `Invalid login attempt` and successful logins. View both messages in App Service **Monitoring > Log stream** after attempting one invalid and one valid login.
